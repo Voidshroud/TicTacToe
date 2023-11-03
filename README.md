@@ -1,3 +1,2 @@
-# TicTacToe
-Tic-Tac-Toe game.
-Singleplayer mode pending AI implementation.
+# Tic-Tac-Toe Game
+Tic-Tac-Toe game offering Singleplayer mode against impossible AI and Multiplayer mode for local play.

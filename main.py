@@ -1,166 +1,150 @@
-import customtkinter
-from player import Player
+import sys
+import pygame
+from constants import *
+from Board import Board
+from AI import AI
 
-gameplay_board = []
-board_state = []
-player_one = None
-player_two = None
-current_player = None
-remaining_moves = 0
+class Game:
 
+    def __init__(self):
+        self.board = Board()
+        self.ai = AI()
+        self.player = 1
+        self.gamemode = "Singleplayer"
+        self.running = True
+        self.show_lines()
 
-def button_play_singleplayer():
-    pass
-    # main_menu_frame.forget()
-    # gameplay_frame.pack()
-    # create_gameplay_board()
+    def isover(self):
+        return self.board.isfull()
 
+    def make_move(self, row, col):
+        self.board.mark_square(row, col, self.player)
+        self.draw_shape(row, col)
+        self.next_turn()
 
-def button_play_multiplayer():
-    global player_one
-    global player_two
-    player_one = Player("X", False)
-    player_two = Player("O", False)
-    main_menu_frame.forget()
-    gameplay_frame.pack()
-    create_gameplay_board()
+    def change_gamemode(self):
+        self.gamemode = "Singleplayer" if self.gamemode == "Multiplayer" else "Multiplayer"
 
+    def show_lines(self):
+        screen.fill(BG_COLOUR)
+        # Vertical lines
+        pygame.draw.line(screen, LINE_COLOUR, (SQ_SIZE, 10), (SQ_SIZE, (HEIGHT - 10)), LINE_WIDTH)
+        pygame.draw.line(screen, LINE_COLOUR, ((2 * SQ_SIZE), 10), ((2 * SQ_SIZE), (HEIGHT - 10)), LINE_WIDTH)
 
-def button_return():
-    restart_gameplay_board()
-    gameplay_frame.forget()
-    main_menu_frame.pack()
+        # Horizontal lines
+        pygame.draw.line(screen, LINE_COLOUR, (10, SQ_SIZE), ((WIDTH - 10), SQ_SIZE), LINE_WIDTH)
+        pygame.draw.line(screen, LINE_COLOUR, (10, (2 * SQ_SIZE)), ((WIDTH - 10), (2 * SQ_SIZE)), LINE_WIDTH)
 
+    def next_turn(self):
+        self.player = self.player % 2 + 1
 
-def button_exit():
-    app.destroy()
+    def draw_shape(self, row, col):
 
+        if self.player == 1:
 
-def create_gameplay_board():
-    global gameplay_board
-    global board_state
-    global current_player
-    global remaining_moves
-    gameplay_board = [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0]
-    ]
-    board_state = [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0]
-    ]
-    current_player = player_one
-    remaining_moves = 9
+            start_first_line = (col * SQ_SIZE + OFFSET, row * SQ_SIZE + OFFSET)
+            end_first_line = (col * SQ_SIZE + SQ_SIZE - OFFSET, row * SQ_SIZE + SQ_SIZE - OFFSET)
+            start_second_line = (col * SQ_SIZE + OFFSET, row * SQ_SIZE + SQ_SIZE - OFFSET)
+            end_second_line = (col * SQ_SIZE + SQ_SIZE - OFFSET, row * SQ_SIZE + OFFSET)
 
-    for i in range(3):
-        for j in range(3):
-            gameplay_board[i][j] = customtkinter.CTkButton(gameplay_frame,
-                                                           height=200, width=200, fg_color="black",
-                                                           corner_radius=0, border_width=5, border_color="green",
-                                                           text="", font=("Helvetica", 100),
-                                                           command=lambda r=i, c=j: clicked(r, c))
-            gameplay_board[i][j].grid(row=i+1, column=j)
+            pygame.draw.line(screen, SHAPE_COLOUR, start_first_line, end_first_line, SHAPE_WIDTH)
+            pygame.draw.line(screen, SHAPE_COLOUR, start_second_line, end_second_line, SHAPE_WIDTH)
 
-    gameplay_label.configure(text=f"Player '{current_player.sign}' turn.")
-    gameplay_label.grid(row=0, column=1)
+        elif self.player == 2:
 
+            center = (col * SQ_SIZE + SQ_SIZE // 2, row * SQ_SIZE + SQ_SIZE // 2)
+            pygame.draw.circle(screen, SHAPE_COLOUR, center, RADIUS, SHAPE_WIDTH)
 
-def restart_gameplay_board():
-    restart_btn.grid_forget()
-    create_gameplay_board()
+    def check_for_winner(self):
+        for col in range(COLUMNS):
+            if self.board.squares[0][col] == self.board.squares[1][col] == self.board.squares[2][col] != 0:
+                self.running = False
+                print(f"The winner is: Player {int(self.board.squares[0][col])}")
 
+        for row in range(ROWS):
+            if self.board.squares[row][0] == self.board.squares[row][1] == self.board.squares[row][2] != 0:
+                self.running = False
+                print(f"The winner is: Player {int(self.board.squares[row][0])}")
 
-def clicked(r, c):
-    global current_player
-    global remaining_moves
-    remaining_moves -= 1
-    board_state[r][c] = current_player.sign
-    if current_player == player_one:
-        gameplay_board[r][c].configure(text=f"{current_player.sign}")
-        check_victory()
-        current_player = player_two
-    else:
-        gameplay_board[r][c].configure(text=f"{current_player.sign}")
-        check_victory()
-        current_player = player_one
+        if self.board.squares[0][0] == self.board.squares[1][1] == self.board.squares[2][2] != 0:
+            self.running = False
+            print(f"The winner is: Player {int(self.board.squares[1][1])}")
 
-    try:
-        gameplay_label.configure(text=f"Player '{current_player.sign}' turn.")
-    except:
-        pass
+        if self.board.squares[0][2] == self.board.squares[1][1] == self.board.squares[2][0] != 0:
+            self.running = False
+            print(f"The winner is: Player {int(self.board.squares[1][1])}")
+
+        elif self.isover():
+            self.running = False
+            print("Game ended in a Tie!")
+
+    def reset(self):
+        self.__init__()
 
 
-def check_victory():
-    global current_player
-    global remaining_moves
+def main():
 
-    for i in range(3):
-        if board_state[i][0] == board_state[i][1] == board_state[i][2] != 0:
-            gameplay_label.grid_forget()
-            restart_btn.configure(text=f"Winner is {current_player.sign}. Restart?")
-            restart_btn.grid(row=0, column=1)
-            break
+    game = Game()
+    board = game.board
+    ai = game.ai
 
-        elif board_state[0][i] == board_state[1][i] == board_state[2][i] != 0:
-            gameplay_label.grid_forget()
-            restart_btn.configure(text=f"Winner is {current_player.sign}. Restart?")
-            restart_btn.grid(row=0, column=1)
-            break
+    print(WELCOME_MESSAGE)
 
-        elif board_state[0][0] == board_state[1][1] == board_state[2][2] != 0:
-            gameplay_label.grid_forget()
-            restart_btn.configure(text=f"Winner is {current_player.sign}. Restart?")
-            restart_btn.grid(row=0, column=1)
-            break
+    while True:
 
-        elif board_state[0][2] == board_state[1][1] == board_state[2][0] != 0:
-            gameplay_label.grid_forget()
-            restart_btn.configure(text=f"Winner is {current_player.sign}. Restart?")
-            restart_btn.grid(row=0, column=1)
-            break
+        for event in pygame.event.get():
 
-        elif remaining_moves == 0:
-            gameplay_label.grid_forget()
-            restart_btn.configure(text=f"Tie. Restart?")
-            restart_btn.grid(row=0, column=1)
-            break
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.KEYDOWN:
+
+                if event.key == pygame.K_r:
+                    game.reset()
+                    board = game.board
+                    ai = game.ai
+                    print(f"------> The board has been cleared <------\n\n"
+                          f"{INSTRUCTIONS_MESSAGE}")
+
+                if event.key == pygame.K_g:
+                    game.change_gamemode()
+                    print(f"Gamemode changed to: '{game.gamemode}'")
+
+                if event.key == pygame.K_s:
+                    if board.isempty():
+                        print("Going second!")
+                        if game.gamemode == "Singleplayer":
+                            print("AI is thinking....")
+                        game.next_turn()
+                    else:
+                        print("Please [R]eset the board before changing the turn order.")
+
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN and game.running:
+                pos = event.pos
+                row = pos[1] // SQ_SIZE
+                col = pos[0] // SQ_SIZE
+
+                if board.square_is_empty(row, col):
+                    game.make_move(row, col)
+                    game.check_for_winner()
+
+        if game.gamemode == "Singleplayer" and game.player == ai.player and game.running:
+            pygame.display.update()
+
+            row, col = ai.evaluate(board)
+            game.make_move(row, col)
+            game.check_for_winner()
+
+        pygame.display.update()
 
 
-customtkinter.set_appearance_mode("System")
-customtkinter.set_default_color_theme("blue")
-
-app = customtkinter.CTk()
-app.geometry("600x660")
-
-main_menu_frame = customtkinter.CTkFrame(app, width=600, height=660)
-main_menu_frame.pack()
-gameplay_frame = customtkinter.CTkFrame(app, width=600, height=660)
-
-warning_label = customtkinter.CTkLabel(master=main_menu_frame,
-                                       text="AI implementation pending. Please use Multiplayer option.",
-                                       text_color="red")
-warning_label.place(relx=0.5, rely=0.15, anchor=customtkinter.CENTER)
-play_singleplayer_btn = customtkinter.CTkButton(master=main_menu_frame, text="Singleplayer",
-                                                command=button_play_singleplayer)
-play_singleplayer_btn.place(relx=0.5, rely=0.25, anchor=customtkinter.CENTER)
-
-play_multiplayer_btn = customtkinter.CTkButton(master=main_menu_frame, text="Multiplayer",
-                                               command=button_play_multiplayer)
-play_multiplayer_btn.place(relx=0.5, rely=0.35, anchor=customtkinter.CENTER)
-
-exit_btn = customtkinter.CTkButton(master=main_menu_frame, text="Exit",
-                                   command=button_exit)
-exit_btn.place(relx=0.5, rely=0.8, anchor=customtkinter.CENTER)
-
-return_btn = customtkinter.CTkButton(master=gameplay_frame, text="Return",
-                                     command=button_return)
-return_btn.grid(row=4, column=1)
-
-restart_btn = customtkinter.CTkButton(master=gameplay_frame,
-                                      command=restart_gameplay_board)
-
-gameplay_label = customtkinter.CTkLabel(master=gameplay_frame)
-
-app.mainloop()
+pygame.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Tic Tac Toe")
+screen.fill(BG_COLOUR)
+main()
