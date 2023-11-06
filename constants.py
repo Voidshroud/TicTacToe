@@ -20,9 +20,11 @@ OFFSET = 50
 WELCOME_MESSAGE = "\n\n*****************************************************************************************************\n"\
                   "Welcome to Tic Tac Toe!\n"\
                   "Current gamemode: Singleplayer\n"\
+                  "AI difficulty: Medium\n"\
                   "You are going first!\n\n"\
                   "------> Click on an empty square to make your move or change settings using shortcuts below <------\n\n"\
                   "Press [G] to change gamemode. (Singleplayer/Multiplayer)\n"\
+                  "Press [D] to change AI difficulty. (Easy/Medium/Impossible)\n"\
                   "Press [S] to go second.\n"\
                   "Press [R] to reset the game board.\n"\
                   "Press [ESC] to quit.\n"\
@@ -31,5 +33,6 @@ INSTRUCTIONS_MESSAGE = "Press [G] to change gamemode. (Singleplayer/Multiplayer)
                        "Press [S] to go second.\n" \
                        "Press [R] to reset the game board.\n" \
                        "Press [ESC] to quit.\n\n" \
-                       "Current gamemode: Singleplayer"\
+                       "Current gamemode: Singleplayer\n" \
+                       "AI difficulty: Medium"\
 
