@@ -55,7 +55,17 @@ class AI:
 
             return min_evaluation, best_move
 
-    def evaluate(self, main_board):
+    def evaluate_impossible_difficulty(self, main_board):
         evaluation, move = self.minimax(main_board, False)
         return move
-    
+
+    def evaluate_medium_difficulty(self, main_board):
+        move = self.random(main_board)
+        i = random.randint(1, 6)
+        if i in range(1, 5):
+            evaluation, move = self.minimax(main_board, False)
+        return move
+
+    def evaluate_easy_difficulty(self, main_board):
+        move = self.random(main_board)
+        return move

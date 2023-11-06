@@ -11,6 +11,8 @@ class Game:
         self.ai = AI()
         self.player = 1
         self.gamemode = "Singleplayer"
+        self.difficulties = ("Easy", "Medium", "Impossible")
+        self.current_difficulty = "Medium"
         self.running = True
         self.show_lines()
 
@@ -74,9 +76,12 @@ class Game:
             self.running = False
             print(f"The winner is: Player {int(self.board.squares[1][1])}")
 
-        elif self.isover():
+        elif self.isover() and self.running is True:
             self.running = False
             print("Game ended in a Tie!")
+
+        if self.running is False:
+            print("Press [R] to reset the game board.")
 
     def reset(self):
         self.__init__()
@@ -120,6 +125,17 @@ def main():
                     else:
                         print("Please [R]eset the board before changing the turn order.")
 
+                if event.key == pygame.K_d:
+                    if game.gamemode == "Singleplayer":
+                        if game.difficulties.index(game.current_difficulty) == len(game.difficulties) - 1:
+                            game.current_difficulty = game.difficulties[0]
+                            print(f"Difficulty changed to '{game.current_difficulty}'.")
+                        else:
+                            game.current_difficulty = game.difficulties[game.difficulties.index(game.current_difficulty) + 1]
+                            print(f"Difficulty changed to '{game.current_difficulty}'.")
+                    else:
+                        print("Difficulty can only be changed in 'Singleplayer' gamemode.")
+
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
@@ -136,7 +152,13 @@ def main():
         if game.gamemode == "Singleplayer" and game.player == ai.player and game.running:
             pygame.display.update()
 
-            row, col = ai.evaluate(board)
+            if game.current_difficulty == "Impossible":
+                row, col = ai.evaluate_impossible_difficulty(board)
+            elif game.current_difficulty == "Medium":
+                row, col = ai.evaluate_medium_difficulty(board)
+            elif game.current_difficulty == "Easy":
+                row, col = ai.evaluate_easy_difficulty(board)
+
             game.make_move(row, col)
             game.check_for_winner()
 
